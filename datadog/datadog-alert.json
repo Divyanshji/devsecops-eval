@@ -1,0 +1,10 @@
+{
+  "name": "Node App High Error Rate",
+  "type": "query alert",
+  "query": "avg(last_5m):sum:errors{service:node-app} > 10",
+  "message": "High error rate detected for node-app",
+  "options": {
+    "notify_no_data": false,
+    "no_data_timeframe": 10
+  }
+}

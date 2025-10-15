@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodSecurityPolicy
+metadata:
+  name: restricted-psp
+# Note: PSP deprecated in recent k8s versions — use Pod Security Admission or OPA/Gatekeeper.
+spec:
+  privileged: false
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  fsGroup:
+    rule: MustRunAs
+  readOnlyRootFilesystem: false

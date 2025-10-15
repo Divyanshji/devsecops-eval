@@ -1,0 +1,44 @@
+# For quick start, use official Datadog chart. This is a minimal DaemonSet example:
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: datadog
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: datadog-secret
+  namespace: datadog
+type: Opaque
+stringData:
+  api-key: "${DATADOG_API_KEY_PLACEHOLDER}"
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: datadog-agent
+  namespace: datadog
+spec:
+  selector:
+    matchLabels:
+      app: datadog-agent
+  template:
+    metadata:
+      labels:
+        app: datadog-agent
+    spec:
+      containers:
+      - name: agent
+        image: "gcr.io/datadoghq/agent:latest"
+        env:
+          - name: DD_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: datadog-secret
+                key: api-key
+          - name: DD_SITE
+            value: datadoghq.com
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi

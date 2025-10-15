@@ -1,27 +1,36 @@
-# DevSecOps Candidate Evaluation — Demo
+# DevSecOps Evaluation - Quickstart
 
-## What is included
-- Node.js Express API + MongoDB (demo)
-- Multi-stage Dockerfile (non-root)
-- GitHub Actions pipeline with Semgrep + Trivy + tfsec/checkov
-- Terraform skeleton for EKS provisioning (fill AWS details)
-- Kubernetes manifests with PodSecurity, NetworkPolicy, OPA/Gatekeeper templates
-- Datadog agent manifest + example monitor
-- Falco daemonset example (runtime security)
+## Assumptions
+- AWS account and IAM permissions to create EKS / ECR / SecretsManager.
+- `kubectl` and `aws` CLI installed and authenticated.
+- `terraform` installed (v1.2+).
+- GitHub repo with secrets configured: AWS_REGION, IMAGE_NAME, SONAR_TOKEN, EKS_CLUSTER_NAME
+- Datadog API key (if using Datadog)
 
-## Quick local setup (minikube / kind)
-1. Build and load image:
-   docker build -t devsecops-eval-api:local ./app
-   kind load docker-image devsecops-eval-api:local
+## Steps (high level)
+1. Create Secrets in AWS Secrets Manager (e.g., key `dev/mongo` with JSON containing MONGO_URL).
+2. Provision EKS with terraform:
+   - `cd terraform`
+   - `terraform init`
+   - `terraform plan -var 'vpc_id=...' -var 'subnets=[...]'`
+   - `terraform apply -var 'vpc_id=...' -var 'subnets=[...]'`
+3. Configure GitHub secrets (IMAGE_NAME, AWS_REGION, SONAR_TOKEN, EKS_CLUSTER_NAME).
+4. Setup External Secrets Controller in cluster and create ExternalSecret CR to sync AWS secrets.
+5. Deploy k8s manifests:
+   - `kubectl apply -f k8s/`
+6. Validate pods:
+   - `kubectl get pods -n dev`
+7. View Datadog metrics (if enabled).
+8. Push commits to `main` to trigger CI.
 
-2. Apply manifests:
-   kubectl apply -f infra/k8s/namespaces.yaml
-   kubectl apply -f infra/k8s/mongo-deployment.yaml
-   kubectl apply -f infra/k8s/api-deployment.yaml
-   kubectl apply -f infra/k8s/api-service.yaml
-   kubectl apply -f infra/k8s/networkpolicy.yaml
-   kubectl apply -f infra/k8s/ingress-nginx.yaml
+## Local image test
+cd app
+docker build -t devsecops-eval:local .
+docker run --rm -p 3000:3000 -e MONGO_URL='mongodb://localhost:27017' devsecops-eval:local
 
-3. Validate:
-   kubectl get pods -n app
-   kubectl logs deploy/node-api -n app
+call http://localhost:3000/health
+
+
+## How to convert REPORT.md to PDF
+- Use `pandoc`:
+  `pandoc REPORT.md -o REPORT.pdf`
