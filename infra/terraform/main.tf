@@ -1,45 +1,40 @@
 terraform {
+  required_version = ">= 1.2"
   required_providers {
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "~> 5.0"
     }
   }
 }
 
 provider "aws" {
-  region = var.region
+  region = var.aws_region
 }
 
-# Example: create an IAM role for EKS node group with limited permissions (skeleton)
-resource "aws_iam_role" "eks_node_role" {
-  name = "eks-node-role-${var.env}"
-  assume_role_policy = data.aws_iam_policy_document.eks_node_assume_role.json
-}
+module "eks" {
+  source          = "terraform-aws-modules/eks/aws"
+  cluster_name    = var.cluster_name
+  cluster_version = "1.28"
+  subnets         = var.subnets
+  vpc_id          = var.vpc_id
 
-data "aws_iam_policy_document" "eks_node_assume_role" {
-  statement {
-    effect = "Allow"
-    principals {
-      type = "Service"
-      identifiers = ["ec2.amazonaws.com"]
+  # node groups - use spot + on-demand mix for cost optimization
+  node_groups = {
+    ondemand = {
+      desired_capacity = 2
+      instance_types   = ["t3.medium"]
+      min_capacity     = 1
+      max_capacity     = 3
     }
-    actions = ["sts:AssumeRole"]
+    spot = {
+      desired_capacity = 2
+      instance_types   = ["t3.medium"]
+      capacity_type    = "SPOT"
+      min_capacity     = 0
+      max_capacity     = 4
+    }
   }
-}
 
-# Add minimum policies as attachments (example - attach AmazonEKSWorkerNodePolicy etc.)
-resource "aws_iam_role_policy_attachment" "worker_attach_policy" {
-  role       = aws_iam_role.eks_node_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  manage_aws_auth = true
 }
-
-# Create EKS cluster (you can swap to terraform-aws-modules/eks for production)
-resource "aws_eks_cluster" "this" {
-  name     = "${var.cluster_name}"
-  role_arn = aws_iam_role.eks_cluster_role.arn
-  vpc_config { subnet_ids = var.private_subnets }
-  # endpoint privateAccess/publicAccess settings for least-exposure
-}
-
-# ... fill in node groups, security group rules, and IRSA for service accounts
