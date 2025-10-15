@@ -1,4 +1,4 @@
-variable "region" { default = "us-east-1" }
-variable "env" { default = "dev" }
-variable "cluster_name" { default = "devsecops-eval-cluster" }
-variable "private_subnets" { type = list(string) }
+variable "aws_region" { default = "us-east-1" }
+variable "cluster_name" { default = "devsecops-eks" }
+variable "vpc_id" {}
+variable "subnets" { type = list(string) }
