@@ -1,22 +1,21 @@
-# Stage 1: build
+# Stage 1: build dependencies
 FROM node:18-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
+COPY package.json package-lock.json* ./
+RUN npm ci --production=false
 COPY . .
 
-# Stage 2: final runtime - small, non-root
-FROM node:18-alpine AS runtime
-# Create non-root user
+# Stage 2: production
+FROM node:18-alpine AS run
+# create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
-# Copy built artifacts
-COPY --from=build /app /app
-# ensure permissions
-RUN chown -R appuser:appgroup /app
-USER appuser
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/server.js ./server.js
+COPY --from=build /app/package.json ./package.json
 
-# Reduce capabilities by default (runtime requirement)
-ENV NODE_ENV=production
+# drop privileges - run as nonroot user
+USER appuser
+ENV PORT=3000
 EXPOSE 3000
-CMD ["node", "index.js"]
+CMD ["node", "server.js"]
