@@ -72,7 +72,7 @@ jobs:
           docker build -t $IMAGE_TAG .
           docker tag $IMAGE_TAG ${IMAGE_NAME}:${IMAGE_TAG}
       - name: Run Trivy scan
-        uses: aquasecurity/trivy-action@v0.5.1
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: ${IMAGE_NAME}:${{ github.sha }}
           format: 'json'
