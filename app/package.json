@@ -1,10 +1,9 @@
 {
-  "name": "devsecops-eval-api",
-  "version": "0.1.0",
-  "main": "index.js",
+  "name": "devsecops-eval-node",
+  "version": "1.0.0",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "node -e \"console.log('no tests')\""
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
