@@ -36,7 +36,7 @@ jobs:
           args: >
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   iac-scan:
@@ -76,7 +76,7 @@ jobs:
           format: 'json'
           exit-code: '1'   # fail pipeline on critical issues
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_TOKEN: ${{ secrets.GIT_TOKEN }}
       - name: Push to ECR (only if scan passed)
         run: |
           docker push ${IMAGE_NAME}:${{ github.sha }}
